@@ -50,9 +50,11 @@ total_iterations = lat_iterations * lon_iterations
 warehouses = {}
 unique_warehouses = []
 lat = min_lat
+i = 0
 while lat <= max_lat:
     lon = min_lon
     while lon <= max_lon:
+		i+=1
         try:
             print(total_iterations, "iterations left")
             total_iterations -= 1
@@ -61,14 +63,16 @@ while lat <= max_lat:
             warehouse = result and result["data"]["mainWarehouse"] if "data" in result and "mainWarehouse" in result["data"] else None
             warehouse_id = warehouse and warehouse["id"]
             if warehouse_id and warehouse_id not in warehouses:
+				warehouse["last_lat"] = lat
+				warehouse["last_lon"] = lon
+				warehouse["i"] = i
                 warehouses[warehouse_id] = warehouse
                 unique_warehouses.append(warehouse)
         except Exception as e:
             print(e)
         lon += lon_step
-        time.sleep(1)  # To avoid overwhelming the server
+        time.sleep(0.1)  # To avoid overwhelming the server
+		if i % 100 == 0:
+			with open('warehouses.json', 'w', encoding="utf-8") as f:
+				json.dump(unique_warehouses, f, indent=4, ensure_ascii=False)
     lat += lat_step
-
-
-with open('warehouses.json', 'w', encoding="utf-8") as f:
-    json.dump(unique_warehouses, f, indent=4, ensure_ascii=False)
